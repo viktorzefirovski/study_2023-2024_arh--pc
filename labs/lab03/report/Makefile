@@ -1,37 +1,24 @@
-FILES = $(patsubst %.md, %.docx, $(wildcard *.md))
-FILES += $(patsubst %.md, %.pdf, $(wildcard *.md))
+# Определяем файлы, которые будут конвертированы
+FILES := $(patsubst %.md, %.docx, $(wildcard *.md)) \
+         $(patsubst %.md, %.pdf, $(wildcard *.md))
 
-FILTERS =
-OPTIONS =
-PDF_ENGINE =
-PDF_OPTIONS =
-FORMAT_OPTIONS =
+# Определяем формат для LaTeX и фильтр
+LATEX_FORMAT := --pdf-engine=lualatex --pdf-engine-opt=--shell-escape
+FILTER := --filter pandoc-crossref
 
-### Cross references
-## Use pandoc-xnos (https://github.com/tomduck/pandoc-xnos)
-## Local pandoc-xnos
-# FILTERS += --filter pandoc/filters/pandoc_fignos.py --filter pandoc/filters/pandoc_eqnos.py --filter pandoc/filters/pandoc_tablenos.py --filter pandoc/filters/pandoc_secnos.py
-## System-wide pandoc-xnos
-# FILTERS += --filter pandoc-fignos --filter pandoc-eqnos --filter pandoc-tablenos --filter pandoc-secnos
-## Use pandoc-crossref (https://github.com/lierdakil/pandoc-crossref)
-FILTERS += --filter pandoc-crossref
-###
-PDF_ENGINE += --pdf-engine=lualatex --pdf-engine-opt=--shell-escape
-OPTIONS += --number-sections
-BIB_OPTIONS = --citeproc
-PDF_BIB_OPTIONS = --citeproc
-# PDF_BIB_OPTIONS = --biblatex
-
+# Правила для конвертации .md в .docx
 %.docx: %.md
-	-pandoc "$<" $(FILTERS) $(OPTIONS) $(BIB_OPTIONS) -o "$@"
+	pandoc "$<" $(FILTER) -o "$@"
 
+# Правила для конвертации .md в .pdf
 %.pdf: %.md
-	-pandoc "$<" $(FILTERS) $(PDF_ENGINE) $(PDF_OPTIONS) $(PDF_BIB_OPTIONS) $(FORMAT_OPTIONS) $(OPTIONS) -o "$@"
+	pandoc "$<" $(LATEX_FORMAT) $(FILTER) -o "$@"
 
+# Основная цель, которая запускает конвертацию всех файлов
 all: $(FILES)
+    @echo "Скомпилировано: $(FILES)"
 
-
+# Очистка сгенерированных файлов
 clean:
-	-rm $(FILES) *~
-
-cleanall: clean
+	rm -f $(FILES)
+	@echo "Очистка завершена."
